@@ -1,6 +1,50 @@
 #include "utf8_strlen.h"
 #include <gtest/gtest.h>
 
+// ---- utf8_truncate_test ----------------------------------------------
+TEST(utf8_truncate_test, Empty) {
+    std::string s("");
+    ASSERT_EQ(utf8_truncate(s, 11), "");
+}
+
+TEST(utf8_truncate_test, Basic_Latin) {
+    std::string s("! # $ % & ' ( ) * + , - . / 0 1 2 3 ");
+    ASSERT_EQ(utf8_truncate(s, 11), "! # $ % & '");
+}
+
+TEST(utf8_truncate_test, Latin_1_Supplement) {
+    std::string s("¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç");
+    ASSERT_EQ(utf8_truncate(s, 37), "¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³");
+}
+
+TEST(utf8_truncate_test, Latin_Extended_A) {
+    std::string s("Ā ā Ă ă Ą ą Ć ć Ĉ ĉ Ċ ċ Č č Ď ď Đ đ Ē ē Ĕ ĕ Ė ė Ę ę Ě ě Ĝ ĝ Ğ");
+    ASSERT_EQ(utf8_truncate(s, 27), "Ā ā Ă ă Ą ą Ć ć Ĉ ĉ Ċ ċ Č č");
+}
+
+TEST(utf8_truncate_test, Thai) {
+    std::string s("ก ข ฃ ค ฅ ฆ ง จ ฉ ช ซ ฌ ญ ฎ ฏ ฐ ฑ ฒ ณ ด ต ถ ท ธ น บ ป ผ ฝ พ ฟ");
+    ASSERT_EQ(utf8_truncate(s, 40), "ก ข ฃ ค ฅ ฆ ง จ ฉ ช ซ ฌ ญ ฎ ฏ ฐ ฑ ฒ ณ ด ");
+}
+
+TEST(utf8_truncate_test, Mixed) {
+    std::string s("Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃 😄 😅 😆 😉 😊");
+    ASSERT_EQ(utf8_truncate(s, 35), "Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃");
+}
+
+TEST(utf8_truncate_test, Length_EQ_Size) {
+    std::string s("Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃 😄 😅 😆 😉 😊");
+    ASSERT_EQ(utf8_truncate(s, 45), "Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃 😄 😅 😆 😉 😊");
+}
+
+TEST(utf8_truncate_test, Length_GT_Size) {
+    std::string s("Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃 😄 😅 😆 😉 😊");
+    ASSERT_EQ(utf8_truncate(s, 55), "Just do it 我有一头小毛驴 じゅうにんといろ 😀 😁 😂 😃 😄 😅 😆 😉 😊");
+}
+
+
+// ---- utf8_strlen_test ------------------------------------------------
+
 /*
  * The Unicode text is from URL:
  *     https://www.ltg.ed.ac.uk/~richard/unicode-sample.html
@@ -13,6 +57,11 @@
         std::string s(value);              \
         ASSERT_EQ(utf8_strlen(s), length); \
     }
+
+TEST(utf8_strlen_test, Empty) {
+    std::string s("");
+    ASSERT_EQ(utf8_strlen(s), 0);
+}
 
 TEST(utf8_strlen_test, Basic_Latin) {
     std::string s("! \" # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~");
@@ -221,4 +270,7 @@ MAKE_TEST(Arabic_Presentation_Forms_B, 259,
           );
 MAKE_TEST(Halfwidth_and_Fullwidth_Forms, 259,
           "！ ＂ ＃ ＄ ％ ＆ ＇ （ ） ＊ ＋ ， － ． ／ ０ １ ２ ３ ４ ５ ６ ７ ８ ９ ： ； ＜ ＝ ＞ ？ ＠ Ａ Ｂ Ｃ Ｄ Ｅ Ｆ Ｇ Ｈ Ｉ Ｊ Ｋ Ｌ Ｍ Ｎ Ｏ Ｐ Ｑ Ｒ Ｓ Ｔ Ｕ Ｖ Ｗ Ｘ Ｙ Ｚ ［ ＼ ］ ＾ ＿ ｀ ａ ｂ ｃ ｄ ｅ ｆ ｇ ｈ ｉ ｊ ｋ ｌ ｍ ｎ ｏ ｐ ｑ ｒ ｓ ｔ ｕ ｖ ｗ ｘ ｙ ｚ ｛ ｜ ｝ ～ ｡ ｢ ｣ ､ ･ ｦ ｧ ｨ ｩ ｪ ｫ ｬ ｭ ｮ ｯ ｰ ｱ ｲ ｳ ｴ ｵ ｶ ｷ ｸ ｹ ｺ ｻ ｼ ｽ ｾ ｿ ﾀ ﾁ ﾂ ..."
+          );
+MAKE_TEST(Emoji, 91,
+          "😀 😁 😂 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 ☺️ 🙂 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😪 😫 😴 😌 😛 😜 😝 😓 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤"
           );
